@@ -3,24 +3,6 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
-const navItems = [
-  { to: "/", label: "Dashboard", icon: "📊", end: true },
-  { to: "/markets", label: "NSE/BSE Markets", icon: "📈" },
-  { to: "/trade-stocks", label: "Trade Stocks", icon: "⚡" },
-  { to: "/crypto", label: "Crypto Markets", icon: "₿" },
-  { to: "/trade-crypto", label: "Trade Crypto", icon: "🔥" },
-  { to: "/portfolio", label: "Portfolio", icon: "💼" },
-  { to: "/watchlist", label: "Watchlist", icon: "⭐" },
-  { to: "/orders", label: "Orders", icon: "🕐" },
-];
-
-const sections = [
-  { label: "General", items: navItems.slice(0, 1) },
-  { label: "Indian Markets", items: navItems.slice(1, 3) },
-  { label: "Crypto", items: navItems.slice(3, 5) },
-  { label: "Account", items: navItems.slice(5) },
-];
-
 export default function Layout() {
   const { user, logout, updateBalance } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +23,6 @@ export default function Layout() {
     try {
       const res = await api.get("/stocks");
       setTicker(res.data.data || []);
-      // refresh balance
       const b = await api.get("/user/balance");
       setBalance(b.data.balance);
       updateBalance(b.data.balance);
@@ -58,14 +39,39 @@ export default function Layout() {
     });
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  const sections = [
+    {
+      label: "General",
+      items: [{ to: "/", label: "Dashboard", icon: "📊", end: true }],
+    },
+    {
+      label: "Indian Markets",
+      items: [
+        { to: "/markets", label: "NSE/BSE Markets", icon: "📈" },
+        { to: "/trade-stocks", label: "Trade Stocks", icon: "⚡" },
+      ],
+    },
+    {
+      label: "Crypto",
+      items: [
+        { to: "/crypto", label: "Crypto Markets", icon: "₿" },
+        { to: "/trade-crypto", label: "Trade Crypto", icon: "🔥" },
+      ],
+    },
+    {
+      label: "Account",
+      items: [
+        { to: "/portfolio", label: "Portfolio", icon: "💼" },
+        { to: "/watchlist", label: "Watchlist", icon: "⭐" },
+        { to: "/orders", label: "Orders", icon: "🕐" },
+        { to: "/profile", label: "Profile", icon: "👤" },
+      ],
+    },
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* Ticker Bar */}
+      {/* Ticker */}
       <div
         style={{
           height: "36px",
@@ -125,6 +131,7 @@ export default function Layout() {
             overflowY: "auto",
           }}
         >
+          {/* Logo */}
           <div
             style={{
               padding: "18px 18px 14px",
@@ -155,6 +162,7 @@ export default function Layout() {
             </div>
           </div>
 
+          {/* Nav Links */}
           <nav style={{ flex: 1, padding: "12px 0" }}>
             {sections.map((sec) => (
               <div key={sec.label}>
@@ -191,6 +199,7 @@ export default function Layout() {
                         : "2px solid transparent",
                       transition: "all 0.15s",
                       textDecoration: "none",
+                      cursor: "pointer",
                     })}
                   >
                     <span>{item.icon}</span>
@@ -201,13 +210,16 @@ export default function Layout() {
             ))}
           </nav>
 
+          {/* User Info */}
           <div style={{ borderTop: "1px solid #1e2e1e", padding: "14px 18px" }}>
             <div
+              onClick={() => navigate("/profile")}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
                 marginBottom: "12px",
+                cursor: "pointer",
               }}
             >
               <div
@@ -249,7 +261,10 @@ export default function Layout() {
               </div>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
               style={{
                 width: "100%",
                 background: "transparent",

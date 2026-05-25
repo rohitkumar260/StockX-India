@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 import StockChart from "../components/StockChart";
 import TradePanel from "../components/TradePanel";
+import BalanceResetBanner from '../components/BalanceResetBanner'
 
 const STOCK_SYMBOLS = [
   "RELIANCE",
@@ -110,7 +111,8 @@ export default function Dashboard() {
           fontFamily: "Space Mono,monospace",
           fontSize: "28px",
           fontWeight: 700,
-          marginBottom: "4px",
+          marginBottom: "1px",
+          marginTop:"-22px"
         }}
       >
         Dashboard
@@ -119,13 +121,15 @@ export default function Dashboard() {
         Welcome back, {user?.name}! Markets are live.
       </p>
 
+       <BalanceResetBanner /> 
+
       {/* Stat Cards */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4,1fr)",
-          gap: "14px",
-          marginBottom: "22px",
+          gap: "12px",
+          marginBottom: "14px",
         }}
       >
         {statCards.map((c) => (
@@ -138,6 +142,7 @@ export default function Dashboard() {
               padding: "18px",
               position: "relative",
               overflow: "hidden",
+               marginTop: "-10px"
             }}
           >
             <div
@@ -186,12 +191,15 @@ export default function Dashboard() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 290px",
+          gridTemplateColumns: "1fr 280px",
           gap: "14px",
           marginBottom: "22px",
+          marginLeft: "-2px",
+          alignItems: 'start', 
+          
         }}
       >
-        <StockChart symbol={selectedSym} assetType="stock" height={200} />
+        <StockChart symbol={selectedSym} assetType="stock" height={135} />
         <TradePanel
           symbols={STOCK_SYMBOLS}
           assetType="stock"

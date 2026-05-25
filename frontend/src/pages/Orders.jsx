@@ -1,1 +1,1 @@
-export { Orders as default } from './AllPages'
+export { Orders as default } from './AllPages' 

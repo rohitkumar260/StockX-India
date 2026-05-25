@@ -29,7 +29,28 @@ const holdingSchema = new mongoose.Schema({
   totalInvested: {
     type: Number,
     required: true
-  }
+  },
+  
+  // ✅ NEW FIELDS
+  stopLoss: {
+    type: Number,
+    default: null,
+    min: 0,
+  },
+  targetPrice: {
+    type: Number,
+    default: null,
+    min: 0,
+  },
+  stopLossTriggered: {
+    type: Boolean,
+    default: false,
+  },
+  targetTriggered: {
+    type: Boolean,
+    default: false,
+  },
+  
 }, { timestamps: true });
 
 holdingSchema.index({ user: 1, symbol: 1 }, { unique: true });

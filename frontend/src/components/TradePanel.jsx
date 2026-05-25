@@ -104,6 +104,27 @@ const s = {
     maxWidth: "95vw",
     boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
   },
+  // ✅ NEW styles  SL OR TP
+  slRow: {
+    display: "flex",
+    gap: "10px",
+  },
+  slInput: {
+    width: "100%",
+    background: "#0a0f0a",
+    border: "1px solid #1e2e1e",
+    borderRadius: "6px",
+    padding: "10px 12px",
+    fontSize: "14px",
+    color: "#e8f5e8",
+    outline: "none",
+    fontFamily: "JetBrains Mono,monospace",
+  },
+  slHint: {
+    fontSize: "11px",
+    marginTop: "4px",
+    fontFamily: "JetBrains Mono,monospace",
+  },
 };
 
 export default function TradePanel({
@@ -119,20 +140,26 @@ export default function TradePanel({
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  // ✅ NEW
+  const [stopLoss, setStopLoss] = useState("");
+  const [targetPrice, setTargetPrice] = useState("");
 
   useEffect(() => {
     fetchPrice(symbol);
     const id = setInterval(() => fetchPrice(symbol), 4000);
     return () => clearInterval(id);
-  }, [symbol]);
+  }, [symbol, assetType]);
 
   async function fetchPrice(sym) {
     try {
       const endpoint =
         assetType === "crypto" ? `/crypto/${sym}` : `/stocks/${sym}`;
       const res = await api.get(endpoint);
-      setPrice(res.data.data.price);
-    } catch {}
+      const p = res.data?.data?.price;
+      if (p) setPrice(p);
+    } catch (err) {
+      console.error("Price fetch error:", sym, err.message);
+    }
   }
 
   const fmt = (n) => {
@@ -162,6 +189,9 @@ export default function TradePanel({
         symbol,
         quantity: qty,
         assetType,
+        // ✅ NEW
+        stopLoss: stopLoss ? parseFloat(stopLoss) : null,
+        targetPrice: targetPrice ? parseFloat(targetPrice) : null,
       });
       toast.success(res.data.message);
       updateBalance(res.data.newBalance);
@@ -192,7 +222,6 @@ export default function TradePanel({
             SELL
           </button>
         </div>
-
         {/* Symbol */}
         <div>
           <span style={s.label}>Symbol</span>
@@ -225,7 +254,6 @@ export default function TradePanel({
             </span>
           </div>
         </div>
-
         {/* Price */}
         <div>
           <span style={s.label}>Price (₹)</span>
@@ -238,6 +266,114 @@ export default function TradePanel({
             onFocus={(e) => (e.target.style.borderColor = "#00e676")}
             onBlur={(e) => (e.target.style.borderColor = "#1e2e1e")}
           />
+        </div>
+
+        {/* ✅ NEW — Stop Loss & Target Price */}
+        <div style={s.slRow}>
+          {/* Stop Loss */}
+          <div style={{ flex: 1 }}>
+            <span style={s.label}>Stop Loss (₹)</span>
+            <input
+              style={{
+                ...s.slInput,
+                borderColor:
+                  mode === "buy"
+                    ? stopLoss && parseFloat(stopLoss) >= price
+                      ? "#ff4444"
+                      : "#1e2e1e"
+                    : stopLoss && parseFloat(stopLoss) <= price
+                      ? "#ff4444"
+                      : "#1e2e1e",
+              }}
+              type="number"
+              placeholder={
+                mode === "buy"
+                  ? price
+                    ? (price * 0.95).toFixed(2)
+                    : "0.00"
+                  : price
+                    ? (price * 1.05).toFixed(2)
+                    : "0.00"
+              }
+              value={stopLoss}
+              onChange={(e) => setStopLoss(e.target.value)}
+              step="0.01"
+              onFocus={(e) => (e.target.style.borderColor = "#ff4444")}
+              onBlur={(e) => (e.target.style.borderColor = "#1e2e1e")}
+            />
+
+            {/* % hint */}
+            {stopLoss && price ? (
+              <div
+                style={{
+                  ...s.slHint,
+                  color:
+                    mode === "buy"
+                      ? parseFloat(stopLoss) < price
+                        ? "#ff4444"
+                        : "#ff8888"
+                      : parseFloat(stopLoss) > price
+                        ? "#ff4444"
+                        : "#ff8888",
+                }}
+              >
+                {(((parseFloat(stopLoss) - price) / price) * 100).toFixed(2)}%
+                from price
+              </div>
+            ) : null}
+          </div>
+
+          {/* Target Price */}
+          <div style={{ flex: 1 }}>
+            <span style={s.label}>Target (₹)</span>
+            <input
+              style={{
+                ...s.slInput,
+                borderColor:
+                  mode === "buy"
+                    ? targetPrice && parseFloat(targetPrice) <= price
+                      ? "#ff4444"
+                      : "#1e2e1e"
+                    : targetPrice && parseFloat(targetPrice) >= price
+                      ? "#ff4444"
+                      : "#1e2e1e",
+              }}
+              type="number"
+              placeholder={
+                mode === "buy"
+                  ? price
+                    ? (price * 1.05).toFixed(2)
+                    : "0.00"
+                  : price
+                    ? (price * 0.95).toFixed(2)
+                    : "0.00"
+              }
+              value={targetPrice}
+              onChange={(e) => setTargetPrice(e.target.value)}
+              step="0.01"
+              onFocus={(e) => (e.target.style.borderColor = "#00e676")}
+              onBlur={(e) => (e.target.style.borderColor = "#1e2e1e")}
+            />
+            {/* % hint */}
+            {targetPrice && price ? (
+              <div
+                style={{
+                  ...s.slHint,
+                  color:
+                    mode === "buy"
+                      ? parseFloat(targetPrice) > price
+                        ? "#00e676"
+                        : "#ff8888"
+                      : parseFloat(targetPrice) < price
+                        ? "#00e676"
+                        : "#ff8888",
+                }}
+              >
+                {(((parseFloat(targetPrice) - price) / price) * 100).toFixed(2)}
+                % from price
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {/* Qty */}
@@ -254,7 +390,6 @@ export default function TradePanel({
             onBlur={(e) => (e.target.style.borderColor = "#1e2e1e")}
           />
         </div>
-
         {/* Totals */}
         <div>
           <div style={s.row}>
@@ -270,7 +405,6 @@ export default function TradePanel({
             </span>
           </div>
         </div>
-
         <button
           style={s.btn(mode)}
           onClick={() => setShowModal(true)}
@@ -353,6 +487,34 @@ export default function TradePanel({
                   ₹{fmt(charges)}
                 </strong>
               </div>
+
+              {/* ✅ NEW — Modal me show karo */}
+              {stopLoss && (
+                <div>
+                  Stop Loss:{" "}
+                  <strong
+                    style={{
+                      color: "#ff4444",
+                      fontFamily: "JetBrains Mono,monospace",
+                    }}
+                  >
+                    ₹{fmt(stopLoss)}
+                  </strong>
+                </div>
+              )}
+              {targetPrice && (
+                <div>
+                  Target:{" "}
+                  <strong
+                    style={{
+                      color: "#00e676",
+                      fontFamily: "JetBrains Mono,monospace",
+                    }}
+                  >
+                    ₹{fmt(targetPrice)}
+                  </strong>
+                </div>
+              )}
             </div>
             <div style={{ display: "flex", gap: "10px", marginTop: "22px" }}>
               <button

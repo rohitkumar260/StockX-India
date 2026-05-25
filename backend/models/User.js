@@ -27,6 +27,21 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 50000
   },
+
+  // ✅ Yeh 3 lines add karo yahan
+balanceResetDate: {     /////////
+  type: Date,            //////////
+  default: null          ///////////
+},
+lastResetAt: {            ////////////
+  type: Date,                 ////////////
+  default: null           ////////
+},
+isBalanceDepleted: {       ///////////////
+  type: Boolean,           ///////////////
+  default: false                /////////////////
+},                           /////////////////////
+
   watchlist: {
     type: [String],
     default: ['RELIANCE', 'TCS', 'INFY', 'HDFC', 'ICICI']

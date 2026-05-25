@@ -1,20 +1,22 @@
-const express = require('express');
-const { protect } = require('../middleware/auth');
-const Holding = require('../models/Holding');
-const { getStockPrice, getCryptoPrice } = require('../services/priceSimulator');
+const express = require("express");
+const { protect } = require("../middleware/auth");
+const Holding = require("../models/Holding");
+const { getStockPrice, getCryptoPrice } = require("../services/priceSimulator");
 const router = express.Router();
 
 // GET /api/portfolio - user's holdings with current P&L
-router.get('/', protect, async (req, res) => {
+router.get("/", protect, async (req, res) => {
   try {
     const holdings = await Holding.find({ user: req.user._id });
 
-    let totalInvested = 0, totalCurrentValue = 0;
+    let totalInvested = 0,
+      totalCurrentValue = 0;
 
-    const enriched = holdings.map(h => {
-      const priceData = h.assetType === 'crypto'
-        ? getCryptoPrice(h.symbol)
-        : getStockPrice(h.symbol);
+    const enriched = holdings.map((h) => {
+      const priceData =
+        h.assetType === "crypto"
+          ? getCryptoPrice(h.symbol)
+          : getStockPrice(h.symbol);
 
       const currentPrice = priceData?.price || h.avgPrice;
       const currentValue = parseFloat((currentPrice * h.quantity).toFixed(2));
@@ -35,14 +37,20 @@ router.get('/', protect, async (req, res) => {
         currentValue,
         pnl,
         pnlPct,
-        updatedAt: h.updatedAt
+        updatedAt: h.updatedAt,
+        // ✅ NEW
+        stopLoss: h.stopLoss,
+        targetPrice: h.targetPrice,
+        stopLossTriggered: h.stopLossTriggered,
+        targetTriggered: h.targetTriggered,
       };
     });
 
     const totalPnl = parseFloat((totalCurrentValue - totalInvested).toFixed(2));
-    const totalPnlPct = totalInvested > 0
-      ? parseFloat(((totalPnl / totalInvested) * 100).toFixed(2))
-      : 0;
+    const totalPnlPct =
+      totalInvested > 0
+        ? parseFloat(((totalPnl / totalInvested) * 100).toFixed(2))
+        : 0;
 
     res.json({
       success: true,
@@ -51,11 +59,11 @@ router.get('/', protect, async (req, res) => {
         totalInvested: parseFloat(totalInvested.toFixed(2)),
         totalCurrentValue: parseFloat(totalCurrentValue.toFixed(2)),
         totalPnl,
-        totalPnlPct
-      }
+        totalPnlPct,
+      },
     });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch portfolio.' });
+    res.status(500).json({ error: "Failed to fetch portfolio." });
   }
 });
 

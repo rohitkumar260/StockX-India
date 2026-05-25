@@ -78,41 +78,77 @@ export default function StockChart({
         labels = sim.labels;
         data = sim.data;
       }
-      buildChart(labels, data);
+      buildChart(labels, data, d.changePct);
     } catch {
       const sim = genSimulatedHistory(currentPrice || 1000, 50, range);
-      buildChart(sim.labels, sim.data);
+      buildChart(sim.labels, sim.data, 0);
     }
   }
 
-  function updateLastPoint() {
-    setChartData((prev) => {
-      if (!prev) return prev;
-      const newData = [...prev.datasets[0].data];
-      const last = newData[newData.length - 1];
-      newData[newData.length - 1] = parseFloat(
-        (last * (1 + (Math.random() - 0.48) * 0.004)).toFixed(2),
-      );
-      return { ...prev, datasets: [{ ...prev.datasets[0], data: newData }] };
-    });
+  async function updateLastPoint() {
+    try {
+      // ✅ Live price fetch karo API se
+      const endpoint =
+        assetType === "crypto" ? `/crypto/${symbol}` : `/stocks/${symbol}`;
+      const res = await api.get(endpoint);
+      const d = res.data.data;
+
+      // ✅ Price aur % update karo
+      setCurrentPrice(d.price);
+      setChangePct(d.changePct);
+
+      // ✅ Chart ka last point bhi update karo
+      setChartData((prev) => {
+        if (!prev) return prev;
+        const newData = [...prev.datasets[0].data];
+        const newLabels = [...prev.labels];
+
+        // Naya point add karo
+        newData.push(d.price);
+        newLabels.push(
+          new Date().toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        );
+
+        // Max 100 points rakho
+        if (newData.length > 100) {
+          newData.shift();
+          newLabels.shift();
+        }
+
+        return {
+          ...prev,
+          labels: newLabels,
+          datasets: [{ ...prev.datasets[0], data: newData }],
+        };
+      });
+    } catch {
+      // Error pe kuch mat karo
+    }
   }
 
-  function buildChart(labels, data) {
+  function buildChart(labels, data, pct) {
     setChartData({
       labels,
       datasets: [
         {
           data,
-          borderColor: "#00e676",
+          borderColor: pct >= 0 ? "#00e676" : "#ff4444",
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.3,
           fill: true,
           backgroundColor: (ctx) => {
-            if (!ctx.chart.ctx) return "transparent";
-            const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, height);
-            g.addColorStop(0, "rgba(0,230,118,0.18)");
-            g.addColorStop(1, "rgba(0,230,118,0)");
+            const chart = ctx.chart;
+            if (!chart.ctx || !chart.chartArea) return "transparent";
+            const { top, bottom } = chart.chartArea;
+            const g = chart.ctx.createLinearGradient(0, top, 0, bottom);
+            const lineColor = pct >= 0 ? "0,230,118" : "255,68,68";
+            g.addColorStop(0, `rgba(${lineColor},0.25)`);
+            g.addColorStop(0.6, `rgba(${lineColor},0.08)`);
+            g.addColorStop(1, `rgba(${lineColor},0.01)`);
             return g;
           },
         },

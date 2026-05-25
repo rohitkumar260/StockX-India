@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const tradeSchema = new mongoose.Schema(
+const shortPositionSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -12,11 +12,6 @@ const tradeSchema = new mongoose.Schema(
       required: true,
       uppercase: true,
     },
-    type: {
-      type: String,
-      enum: ["buy", "sell"],
-      required: true,
-    },
     assetType: {
       type: String,
       enum: ["stock", "crypto"],
@@ -25,27 +20,23 @@ const tradeSchema = new mongoose.Schema(
     quantity: {
       type: Number,
       required: true,
-      min: 0.001,
     },
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    total: {
+    sellPrice: {
+      // jis price pe sell kiya
       type: Number,
       required: true,
     },
-    charges: {
+    totalReceived: {
+      // kitna paisa mila sell karke
       type: Number,
-      default: 0,
+      required: true,
     },
     status: {
       type: String,
-      enum: ["executed", "failed", "pending"],
-      default: "executed",
+      enum: ["open", "closed"],
+      default: "open",
     },
-    // ✅ NEW FIELDS
+    // ✅ NEW
     stopLoss: {
       type: Number,
       default: null,
@@ -64,18 +55,8 @@ const tradeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    // Trigger reason save karo
-    triggerReason: {
-      type: String,
-      enum: ["manual", "stopLoss", "target"],
-      default: "manual",
-    },
   },
-
   { timestamps: true },
 );
 
-tradeSchema.index({ user: 1, createdAt: -1 });
-tradeSchema.index({ symbol: 1 });
-
-module.exports = mongoose.model("Trade", tradeSchema);
+module.exports = mongoose.model("ShortPosition", shortPositionSchema);

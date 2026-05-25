@@ -30,15 +30,15 @@ app.use(express.json());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 100,
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 200,
   message: { error: 'Too many requests, please try again later.' }
 });
 app.use('/api/', limiter);
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
+  windowMs: 5 * 60 * 1000,
+  max: 50,
   message: { error: 'Too many login attempts.' }
 });
 app.use('/api/auth', authLimiter);
