@@ -1,27 +1,27 @@
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   timeout: 10000,
-})
+});
 
 // Auto-attach token
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('sxi_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("sxi_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 // Handle 401 globally
 api.interceptors.response.use(
-  res => res,
-  err => {
+  (res) => res,
+  (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('sxi_token')
-      window.location.href = '/login'
+      localStorage.removeItem("sxi_token");
+      window.location.href = "/login";
     }
-    return Promise.reject(err)
-  }
-)
+    return Promise.reject(err);
+  },
+);
 
-export default api
+export default api;
