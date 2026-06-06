@@ -57,11 +57,7 @@ app.use("/api/crypto", cryptoRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "StockX India API running",
-    time: new Date(),
-  });
+  res.json({ status: "ok" });
 });
 
 // 404
