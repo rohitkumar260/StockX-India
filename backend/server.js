@@ -19,6 +19,7 @@ const app = express();
 
 // ── Security & Middleware ──────────────────────────────────────────────
 app.use(helmet());
+app.set("trust proxy", 1); // ✅ ADD KARO YAHAN
 app.use(morgan("dev"));
 app.use(
   cors({
